@@ -1,0 +1,33 @@
+name: Auto Unzip Uploaded ZIPs
+
+on:
+  push:
+    paths:
+      - 'uploads/*.zip'
+
+jobs:
+  unzip_job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install unzip tool
+        run: sudo apt update && sudo apt install -y unzip
+
+      - name: Unzip ZIP files
+        run: |
+          mkdir -p plugins
+          for zip in uploads/*.zip; do
+            [ -f "$zip" ] || continue
+            unzip -o "$zip" -d plugins/
+          done
+
+      - name: Commit unzipped files
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add plugins/
+          git commit -m "📦 Auto-unzipped uploaded ZIP files"
+          git push
